@@ -1,1 +1,73 @@
 # foil
+
+[![Build status](https://ci.appveyor.com/api/projects/status/x97rqf3f82647e1j?svg=true)](https://ci.appveyor.com/project/moattarwork/foil-nha98)
+
+foil is a set of extensions which enable interception support for .Net Core dependency injection framework. It uses Castle Core framework to enable on the fly proxy creation of container elements.
+
+The package can be downloaded from NuGet using
+
+install-package foil
+
+## Usage
+The package consists of extensions to register services as Transient, Scoped or Singleton with the interceptors.
+
+  services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+  
+  or
+  
+  services.AddSingletonWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+
+## Code sample
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var services = new ServiceCollection();
+
+            services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+
+            var provider = services.BuildServiceProvider();
+
+            var service = provider.GetRequiredService<ISampleService>();
+            service.Call();
+        }
+    }
+    
+    public interface ISampleService
+    {
+        void Call();
+        string State { get; }
+    }
+    
+    public class SampleService : ISampleService
+    {
+        public string State { get; private set; } = string.Empty;
+        
+        public virtual void Call()
+        {
+            State = "Changed";
+            Console.WriteLine("Hello Sample");
+        }
+    }
+
+    public class LogInterceptor : IInterceptor
+    {
+        private readonly ISampleLogger _logger;
+
+        public LogInterceptor(ISampleLogger logger)
+        {
+            _logger = logger;
+        }
+
+        public virtual void Intercept(IInvocation invocation)
+        {
+            _logger.Log("Before invocation");
+            
+            invocation.Proceed();
+            
+            _logger.Log("After invocation");
+        }
+    }
+    
+    
