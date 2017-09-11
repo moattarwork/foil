@@ -11,12 +11,13 @@ install-package foil
 ## Usage
 The package consists of extensions to register services as Transient, Scoped or Singleton with the interceptors.
 
-  services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
-  
-  or
-  
-  services.AddSingletonWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
-
+```
+services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+```  
+or
+```
+services.AddSingletonWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+```
 ## Code sample
 
     class Program
