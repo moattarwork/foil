@@ -4,5 +4,6 @@
     {
         void Call();
         string State { get; }
+        string GetName();
     }
 }

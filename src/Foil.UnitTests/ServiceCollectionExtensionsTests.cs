@@ -7,49 +7,27 @@ using Xunit;
 
 namespace Foil.UnitTests
 {
-    public class ServiceCollectionExtensionsTests
+    public class ServiceCollectionExtensionsTests : IClassFixture<ServiceCollectionFixture>
     {
-        [Fact]
-        public void Should_AddTransientWithInterception_CreateTheTransientInstanceWithInterception()
+        private readonly ServiceCollectionFixture _fixture;
+
+        public ServiceCollectionExtensionsTests(ServiceCollectionFixture fixture)
         {
-            // Given
-            var logger = Substitute.For<ISampleLogger>();
-            var services = new ServiceCollection();
-            
-            services.AddSingleton(logger);
-            services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
-            var provider = services.BuildServiceProvider();
-            var sut = provider.GetRequiredService<ISampleService>();
-            var secondSut = provider.GetRequiredService<ISampleService>();
-
-            // When            
-            sut.Call();
-            
-            // Then
-            logger.Received(1).Log("Before invocation");
-            logger.Received(1).Log("After invocation");
-
-            secondSut.Should().NotBeSameAs(sut);
-            sut.State.Should().Be("Changed");
-            secondSut.State.Should().Be(string.Empty);
-        }        
+            _fixture = fixture;
+        }
         
         [Fact]
         public void Should_AddSingletonWithInterception_CreateTheSingletonInstanceWithInterception()
         {
             // Given
-            var logger = Substitute.For<ISampleLogger>();
-            var services = new ServiceCollection();
-            
-            services.AddSingleton(logger);
-            services.AddSingletonWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
-            var provider = services.BuildServiceProvider();
+            var provider = _fixture.ProviderWithSingletonOf<ISampleService, SampleService>();
+            var logger = provider.GetRequiredService<ISampleLogger>();
             var sut = provider.GetRequiredService<ISampleService>();
             var secondSut = provider.GetRequiredService<ISampleService>();
 
             // When            
             sut.Call();
-            
+
             // Then
             logger.Received(1).Log("Before invocation");
             logger.Received(1).Log("After invocation");
@@ -57,6 +35,59 @@ namespace Foil.UnitTests
             secondSut.Should().NotBeSameAs(sut);
             sut.State.Should().Be("Changed");
             secondSut.State.Should().Be("Changed");
+        }
+
+        [Fact]
+        public void Should_AddTransientWithInterception_CreateTheTransientInstanceWithInterception()
+        {
+            // Given
+            var provider = _fixture.ProviderWithTransientOf<ISampleService, SampleService>();
+            var logger = provider.GetRequiredService<ISampleLogger>();
+            var sut = provider.GetRequiredService<ISampleService>();
+            var secondSut = provider.GetRequiredService<ISampleService>();
+
+            // When            
+            sut.Call();
+
+            // Then
+            logger.Received(1).Log("Before invocation");
+            logger.Received(1).Log("After invocation");
+
+            secondSut.Should().NotBeSameAs(sut);
+            sut.State.Should().Be("Changed");
+            secondSut.State.Should().Be(string.Empty);
+        }
+
+        [Fact]
+        public void Should_AddTransientWithInterception_WhenSpecifyNonQueryConvention_InterceptionIsAvailableOnNonQueryMethods()
+        {
+            // Given
+            var provider = _fixture.ProviderWithConventionBasedTransientOf<ISampleService, SampleService>();
+            var logger = provider.GetRequiredService<ISampleLogger>();
+            var sut = provider.GetRequiredService<ISampleService>();
+
+            // When            
+            sut.Call();
+
+            // Then
+            logger.Received(1).Log("Before invocation");
+            logger.Received(1).Log("After invocation");
+        }        
+        
+        [Fact]
+        public void Should_AddTransientWithInterception_WhenSpecifyNonQueryConvention_NoInterceptionOnQueryMethods()
+        {
+            // Given
+            var provider = _fixture.ProviderWithConventionBasedTransientOf<ISampleService, SampleService>();
+            var logger = provider.GetRequiredService<ISampleLogger>();
+            var sut = provider.GetRequiredService<ISampleService>();
+
+            // When            
+            sut.GetName();
+
+            // Then
+            logger.DidNotReceive().Log(Arg.Any<string>());
+            logger.DidNotReceive().Log(Arg.Any<string>());
         }
     }
 }

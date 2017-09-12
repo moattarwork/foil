@@ -2,6 +2,6 @@
 {
     public interface IUseMethodConvention
     {
-        void UseMethodSelectionConvention<TConvention>() where TConvention : IMethodSelectionConvenstion, new();
+        void UseMethodConvention<TConvention>() where TConvention : IMethodConvention, new();
     }
 }

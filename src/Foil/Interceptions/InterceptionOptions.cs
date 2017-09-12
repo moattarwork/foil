@@ -10,7 +10,7 @@ namespace Foil.Interceptions
     {
         private readonly IDictionary<Type, Type> _interceptors = new Dictionary<Type, Type>();
 
-        public void UseMethodSelectionConvention<TConvention>() where TConvention : IMethodSelectionConvenstion, new()
+        public void UseMethodConvention<TConvention>() where TConvention : IMethodConvention, new()
         {
             Convention = new TConvention();
         }
@@ -34,6 +34,6 @@ namespace Foil.Interceptions
 
         public List<Type> Interceptors => _interceptors.Values.ToList();
 
-        public IMethodSelectionConvenstion Convention { get; private set; } = new DefaultMethodSelectionConvenstion();
+        public IMethodConvention Convention { get; private set; } = new AllMethodsConvention();
     }
 }
