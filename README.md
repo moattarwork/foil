@@ -6,7 +6,9 @@ foil is a set of extensions which enable interception support for .Net Core depe
 
 The package can be downloaded from NuGet using
 
+```
 install-package foil
+```
 
 ## Usage
 The package consists of extensions to register services as Transient, Scoped or Singleton with the interceptors.
