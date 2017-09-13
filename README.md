@@ -6,18 +6,29 @@ foil is a set of extensions which enable interception support for .Net Core depe
 
 The package can be downloaded from NuGet using
 
+```
 install-package foil
+```
 
 ## Usage
 The package consists of extensions to register services as Transient, Scoped or Singleton with the interceptors.
 
 ```
-services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>()
+    .UseMethodConvention<NonQueryMethodsConvention>());
 ```  
 or
 ```
-services.AddSingletonWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+services.AddSingletonWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>()
+    .UseMethodConvention<NonQueryMethodsConvention>());
+
 ```
+Convention give this option to specify which methods need to be selected for interception. The are couple of predefined convention which can be used:
+- AllMethodsConvention (Default)
+- NonQueryMethodsConvention
+
+Custom conventions can be provided by implementing IMethodConvention.
+
 ## Code sample
 
     class Program
