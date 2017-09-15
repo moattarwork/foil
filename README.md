@@ -1,7 +1,7 @@
 # foil
 
 [![Build status](https://ci.appveyor.com/api/projects/status/x97rqf3f82647e1j?svg=true)](https://ci.appveyor.com/project/moattarwork/foil-nha98)
-[![NuGet Status](http://nugetstatus.com/foil.png)](http://nugetstatus.com/packages/foil)
+[![NuGet Status](https://img.shields.io/nuget/v/Foil.svg)](https://www.nuget.org/packages/Foil/)
 
 foil is a set of extensions which enable interception support for .Net Core dependency injection framework. It uses Castle Core framework to enable on the fly proxy creation of container elements.
 
