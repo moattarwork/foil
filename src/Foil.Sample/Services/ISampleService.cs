@@ -2,6 +2,6 @@
 {
     public interface ISampleService
     {
-        void Call();
+        void Call(string sample);
     }
 }
