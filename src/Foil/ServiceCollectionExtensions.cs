@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Castle.DynamicProxy;
-using Castle.DynamicProxy.Generators;
 using Foil.Conventions;
 using Foil.Interceptions;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,45 +11,97 @@ namespace Foil
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddTransientWithInterception<T, TImplementation>(
-            this IServiceCollection services, Action<IInterceptBy> action)
-            where T : class
-            where TImplementation : class, T
+            this IServiceCollection services,
+            Func<IServiceProvider, TImplementation> serviceFactory,
+            Action<IInterceptBy> configurator)
+            where T : class where TImplementation : class, T
         {
-            return AddWithInterception<T, TImplementation>(services, action, ServiceLifetime.Transient);
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (serviceFactory == null)
+                throw new ArgumentNullException(nameof(serviceFactory));
+
+            return services.Add<T, TImplementation>(
+                lifetime => new ServiceDescriptor(typeof(TImplementation), serviceFactory, lifetime),
+                configurator, ServiceLifetime.Transient);
         }
 
-        public static IServiceCollection AddScopedWithInterception<T, TImplementation>(
-            this IServiceCollection services, Action<IInterceptBy> action)
-            where T : class
-            where TImplementation : class, T
+        public static IServiceCollection AddScopedWithInterception<T, TImplementation>(this IServiceCollection services,
+            Func<IServiceProvider, TImplementation> serviceFactory,
+            Action<IInterceptBy> configurator)
+            where T : class where TImplementation : class, T
         {
-            return AddWithInterception<T, TImplementation>(services, action, ServiceLifetime.Scoped);
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (serviceFactory == null)
+                throw new ArgumentNullException(nameof(serviceFactory));
+
+            return services.Add<T, TImplementation>(
+                lifetime => new ServiceDescriptor(typeof(TImplementation), serviceFactory, lifetime),
+                configurator, ServiceLifetime.Scoped);
         }
 
         public static IServiceCollection AddSingletonWithInterception<T, TImplementation>(
-            this IServiceCollection services, Action<IInterceptBy> action)
+            this IServiceCollection services,
+            Func<IServiceProvider, TImplementation> serviceFactory,
+            Action<IInterceptBy> configurator)
+            where T : class where TImplementation : class, T
+        {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (serviceFactory == null)
+                throw new ArgumentNullException(nameof(serviceFactory));
+
+            return services.Add<T, TImplementation>(
+                lifetime => new ServiceDescriptor(typeof(TImplementation), serviceFactory, lifetime),
+                configurator, ServiceLifetime.Singleton);
+        }
+
+        public static IServiceCollection AddTransientWithInterception<T, TImplementation>(
+            this IServiceCollection services, Action<IInterceptBy> configurator)
             where T : class
             where TImplementation : class, T
         {
-            return AddWithInterception<T, TImplementation>(services, action, ServiceLifetime.Singleton);
+            return Add<T, TImplementation>(services,
+                lifetime => ServiceDescriptor.Describe(typeof(TImplementation), typeof(TImplementation), lifetime),
+                configurator, ServiceLifetime.Transient);
         }
 
-        private static IServiceCollection AddWithInterception<T, TImplementation>(this IServiceCollection services,
-            Action<IInterceptBy> action, ServiceLifetime lifetime)
+        public static IServiceCollection AddScopedWithInterception<T, TImplementation>(
+            this IServiceCollection services, Action<IInterceptBy> configurator)
+            where T : class
+            where TImplementation : class, T
+        {
+            return Add<T, TImplementation>(services,
+                lifetime => ServiceDescriptor.Describe(typeof(TImplementation), typeof(TImplementation), lifetime),
+                configurator, ServiceLifetime.Scoped);
+        }
+
+        public static IServiceCollection AddSingletonWithInterception<T, TImplementation>(
+            this IServiceCollection services, Action<IInterceptBy> configurator)
             where T : class
             where TImplementation : class, T
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
-            if (!Enum.IsDefined(typeof(ServiceLifetime), lifetime))
-                throw new ArgumentOutOfRangeException(nameof(lifetime),
-                    "Value should be defined in the ServiceLifetime enum.");
+            return Add<T, TImplementation>(services,
+                lifetime => ServiceDescriptor.Describe(typeof(TImplementation), typeof(TImplementation), lifetime),
+                configurator, ServiceLifetime.Singleton);
+        }
+
+        private static IServiceCollection Add<TService, TImplementation>(this IServiceCollection services,
+            Func<ServiceLifetime, ServiceDescriptor> descriptorFactory, Action<IInterceptBy> configurator,
+            ServiceLifetime lifetime) where TService : class where TImplementation : class, TService
+        {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (configurator == null) throw new ArgumentNullException(nameof(configurator));
+
 
             var interceptionOptions = new InterceptionOptions();
-            action?.Invoke(interceptionOptions);
+            configurator.Invoke(interceptionOptions);
 
             interceptionOptions.Interceptors.ForEach(services.TryAddTransient);
-
-            services.TryAdd(ServiceDescriptor.Describe(typeof(TImplementation), typeof(TImplementation), lifetime));
+            services.TryAdd(descriptorFactory(lifetime));
 
             services.AddTransient(sp =>
             {
@@ -58,14 +109,15 @@ namespace Foil
                     .Select(sp.GetRequiredService)
                     .Cast<IInterceptor>()
                     .ToArray();
-                
+
                 var implementation = sp.GetRequiredService<TImplementation>();
 
                 var proxyFactory = new ProxyGenerator();
-                var proxyGenerationHook = new ConvensionBasedProxyGenerationHook(interceptionOptions.Convention);
+                var proxyGenerationHook = new ConventionBasedProxyGenerationHook(interceptionOptions.Convention);
                 var proxyGenerationOptions = new ProxyGenerationOptions(proxyGenerationHook);
-                
-                return proxyFactory.CreateInterfaceProxyWithTarget<T>(implementation, proxyGenerationOptions, interceptorInstances);
+
+                return proxyFactory.CreateInterfaceProxyWithTarget<TService>(implementation, proxyGenerationOptions,
+                    interceptorInstances);
             });
 
             return services;

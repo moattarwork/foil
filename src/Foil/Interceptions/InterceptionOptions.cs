@@ -17,7 +17,7 @@ namespace Foil.Interceptions
 
         public IThenInterceptBy ThenBy<TInterceptor>() where TInterceptor : IInterceptor
         {
-            if (_interceptors.ContainsKey(typeof(TInterceptor)))
+            if (!_interceptors.ContainsKey(typeof(TInterceptor)))
                 _interceptors.Add(typeof(TInterceptor), typeof(TInterceptor));
 
             return this;

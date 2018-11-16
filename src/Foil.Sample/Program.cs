@@ -1,6 +1,8 @@
-﻿using Foil.Sample.Interceptors;
+﻿using Foil.Logging;
+using Foil.Sample.Interceptors;
 using Foil.Sample.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Foil.Sample
 {
@@ -10,12 +12,16 @@ namespace Foil.Sample
         {
             var services = new ServiceCollection();
 
-            services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+            services.AddLogging();
+            services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LoggingInterceptor>().ThenBy<LogInterceptor>());
 
             var provider = services.BuildServiceProvider();
+            var loggingFactory = provider.GetRequiredService<ILoggerFactory>();
+            loggingFactory.AddConsole(LogLevel.Trace);
 
             var service = provider.GetRequiredService<ISampleService>();
-            service.Call();
+            
+            service.Call("Dear User");
         }
     }
 }

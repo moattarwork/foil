@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foil.UnitTests", "Foil.Unit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foil.Sample", "Foil.Sample\Foil.Sample.csproj", "{3AD6C03C-F18A-4F95-9575-FC4B32D83F40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foil.Logging", "Foil.Logging\Foil.Logging.csproj", "{22710EAF-09BE-495D-A7EF-23F262ACF80A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{3AD6C03C-F18A-4F95-9575-FC4B32D83F40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AD6C03C-F18A-4F95-9575-FC4B32D83F40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AD6C03C-F18A-4F95-9575-FC4B32D83F40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22710EAF-09BE-495D-A7EF-23F262ACF80A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22710EAF-09BE-495D-A7EF-23F262ACF80A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22710EAF-09BE-495D-A7EF-23F262ACF80A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22710EAF-09BE-495D-A7EF-23F262ACF80A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
