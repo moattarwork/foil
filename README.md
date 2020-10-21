@@ -23,12 +23,12 @@ dotnet add package Foil.Logging
 ## Usage
 The package consists of extensions to register services as Transient, Scoped or Singleton with the interceptors.
 
-```
+```c#
 services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>()
     .UseMethodConvention<NonQueryMethodsConvention>());
 ```  
 or
-```
+```c#
 services.AddSingletonWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>()
     .UseMethodConvention<NonQueryMethodsConvention>());
 
@@ -41,55 +41,56 @@ Custom conventions can be provided by implementing IMethodConvention.
 
 ## Code sample
 
-    class Program
+```c#
+class Program
+{
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            var services = new ServiceCollection();
+        var services = new ServiceCollection();
 
-            services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
+        services.AddTransientWithInterception<ISampleService, SampleService>(m => m.InterceptBy<LogInterceptor>());
 
-            var provider = services.BuildServiceProvider();
+        var provider = services.BuildServiceProvider();
 
-            var service = provider.GetRequiredService<ISampleService>();
-            service.Call();
-        }
+        var service = provider.GetRequiredService<ISampleService>();
+        service.Call();
     }
+}
+
+public interface ISampleService
+{
+    void Call();
+    string State { get; }
+}
+
+public class SampleService : ISampleService
+{
+    public string State { get; private set; } = string.Empty;
     
-    public interface ISampleService
+    public virtual void Call()
     {
-        void Call();
-        string State { get; }
+        State = "Changed";
+        Console.WriteLine("Hello Sample");
     }
-    
-    public class SampleService : ISampleService
+}
+
+public class LogInterceptor : IInterceptor
+{
+    private readonly ISampleLogger _logger;
+
+    public LogInterceptor(ISampleLogger logger)
     {
-        public string State { get; private set; } = string.Empty;
+        _logger = logger;
+    }
+
+    public virtual void Intercept(IInvocation invocation)
+    {
+        _logger.Log("Before invocation");
         
-        public virtual void Call()
-        {
-            State = "Changed";
-            Console.WriteLine("Hello Sample");
-        }
+        invocation.Proceed();
+        
+        _logger.Log("After invocation");
     }
-
-    public class LogInterceptor : IInterceptor
-    {
-        private readonly ISampleLogger _logger;
-
-        public LogInterceptor(ISampleLogger logger)
-        {
-            _logger = logger;
-        }
-
-        public virtual void Intercept(IInvocation invocation)
-        {
-            _logger.Log("Before invocation");
-            
-            invocation.Proceed();
-            
-            _logger.Log("After invocation");
-        }
-    }
-    
+}
+```
     
