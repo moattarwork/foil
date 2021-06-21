@@ -103,7 +103,7 @@ namespace Foil
             interceptionOptions.Interceptors.ForEach(services.TryAddTransient);
             services.TryAdd(descriptorFactory(lifetime));
 
-            services.AddTransient(sp =>
+            services.Add(ServiceDescriptor.Describe(typeof(TService), sp =>
             {
                 var interceptorInstances = interceptionOptions.Interceptors
                     .Select(sp.GetRequiredService)
@@ -118,7 +118,7 @@ namespace Foil
 
                 return proxyFactory.CreateInterfaceProxyWithTarget<TService>(implementation, proxyGenerationOptions,
                     interceptorInstances);
-            });
+            }, lifetime));
 
             return services;
         }
